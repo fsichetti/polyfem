@@ -30,6 +30,8 @@ namespace polyfem::solver
 
 		void update_barrier_stiffness(const Eigen::VectorXd &x, const Eigen::MatrixXd &grad_energy) override;
 
+		void force_shape_derivative(const Eigen::MatrixXd &solution, const Eigen::VectorXd &adjoint_sol, Eigen::VectorXd &term) const;
+
 		/// @brief Update fields after a step in the optimization
 		/// @param iter_num Optimization iteration number
 		/// @param x Current solution

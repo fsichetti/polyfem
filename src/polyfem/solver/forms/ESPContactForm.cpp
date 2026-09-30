@@ -111,6 +111,15 @@ namespace polyfem::solver
 		log_and_throw_error("Adaptive barrier stiffness not implemented for ESPContactForm!");
 	}
 
+	void ESPContactForm::force_shape_derivative(const Eigen::MatrixXd &solution, const Eigen::VectorXd &adjoint_sol, Eigen::VectorXd &term) const
+	{
+		const Eigen::MatrixXd displaced_surface = compute_displaced_surface(solution);
+		ipc::ESPCollisions collision_set;
+		collision_set.build(collision_mesh_, displaced_surface, params, broad_phase_.get());
+		const StiffnessMatrix dq_h = collision_mesh_.to_full_dof(barrier_potential_.shape_derivative(collision_set, collision_mesh_, displaced_surface));
+		term = barrier_stiffness() * dq_h.transpose() * adjoint_sol;
+	}
+
 	void ESPContactForm::update_collision_set(const Eigen::MatrixXd &displaced_surface)
 	{
 		// Store the previous value used to compute the constraint set to avoid duplicate computation.

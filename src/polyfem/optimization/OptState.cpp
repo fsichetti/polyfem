@@ -499,6 +499,7 @@ namespace polyfem
 			{
 				// No non-convergent contact formulation support.
 				if (!varform.get_args()["contact"]["use_gcp_formulation"].get<bool>()
+					&& !varform.get_args()["contact"]["use_esp_formulation"].get<bool>()
 					&& !varform.get_args()["contact"]["use_convergent_formulation"].get<bool>())
 				{
 					log_and_throw_adjoint_error(

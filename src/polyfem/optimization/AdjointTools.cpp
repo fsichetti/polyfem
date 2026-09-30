@@ -21,6 +21,7 @@
 #include <polyfem/solver/forms/ContactForm.hpp>
 #include <polyfem/solver/forms/BarrierContactForm.hpp>
 #include <polyfem/solver/forms/GCPContactForm.hpp>
+#include <polyfem/solver/forms/ESPContactForm.hpp>
 #include <polyfem/solver/forms/PeriodicContactForm.hpp>
 #include <polyfem/solver/forms/NormalAdhesionForm.hpp>
 #include <polyfem/solver/forms/TangentialAdhesionForm.hpp>
@@ -612,6 +613,10 @@ namespace polyfem::solver
 				{
 					GCPContactForceDerivative::force_shape_derivative(*gcp, diff_cache.smooth_collision_set(0), sol, adjoint_zeroed, contact_term);
 				}
+				else if (const auto esp = dynamic_cast<const ESPContactForm *>(varform.solve_data()->contact_form.get()))
+				{
+					esp->force_shape_derivative(sol, adjoint_zeroed, contact_term);
+				}
 
 				contact_term = diff_cache.basis_nodes_to_gbasis_nodes() * contact_term;
 			}
@@ -662,6 +667,10 @@ namespace polyfem::solver
 			else if (const auto gcp = dynamic_cast<const GCPContactForm *>(varform.solve_data()->contact_form.get()))
 			{
 				GCPContactForceDerivative::force_shape_derivative(*gcp, diff_cache.smooth_collision_set(0), sol, full_adjoint, contact_term);
+			}
+			else if (const auto esp = dynamic_cast<const ESPContactForm *>(varform.solve_data()->contact_form.get()))
+			{
+				esp->force_shape_derivative(sol, full_adjoint, contact_term);
 			}
 
 			contact_term = diff_cache.basis_nodes_to_gbasis_nodes() * contact_term;
@@ -780,6 +789,10 @@ namespace polyfem::solver
 					else if (const auto gcp = dynamic_cast<const GCPContactForm *>(varform.solve_data()->contact_form.get()))
 					{
 						GCPContactForceDerivative::force_shape_derivative(*gcp, diff_cache.smooth_collision_set(i), diff_cache.u(i), cur_p, contact_term);
+					}
+					else if (const auto esp = dynamic_cast<const ESPContactForm *>(varform.solve_data()->contact_form.get()))
+					{
+						esp->force_shape_derivative(diff_cache.u(i), cur_p, contact_term);
 					}
 					contact_term = diff_cache.basis_nodes_to_gbasis_nodes() * contact_term;
 					// contact_term /= beta_dt * beta_dt;

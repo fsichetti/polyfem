@@ -592,6 +592,31 @@ TEST_CASE("shape-contact-smooth", "[opt_gradient]")
 	}
 }
 
+TEST_CASE("shape-contact-esp", "[opt_gradient]")
+{
+	constexpr uint64_t SEED = BASE_SEED + 32;
+	constexpr int REPEAT = 1;
+	constexpr double TOL = 1e-7;
+	TestContext ctx{"shape-contact-opt.json"};
+
+	// Because varform configs are shared, tailor JSON args.
+	for (auto &varform : ctx.opt.varforms)
+		varform->get_args()["contact"]["use_esp_formulation"] = true;
+
+	Eigen::MatrixXd V;
+	ctx.opt.varforms[0]->get_vertices(V);
+	Eigen::VectorXd x = utils::flatten(V);
+
+	ctx.opt.nl_problem->solution_changed(x);
+	Eigen::VectorXd one_form;
+	ctx.opt.nl_problem->gradient(x, one_form);
+
+	for (int i = 0; i < REPEAT; ++i)
+	{
+		verify_adjoint(*ctx.opt.nl_problem, x, one_form.normalized(), 1e-6, TOL, "shape-contact-esp", i, SEED);
+	}
+}
+
 TEST_CASE("initial-contact-smooth", "[opt_gradient]")
 {
 	TestContext ctx{"initial-contact-smooth-opt.json"};
@@ -644,6 +669,33 @@ TEST_CASE("shape-transient-smooth", EXPENSIVE_TEST_LABEL)
 	{
 		Eigen::MatrixXd velocity = uniform_random_matrix(ctx.opt.ndof, 1, rng, 0.0, 1.0);
 		verify_adjoint(*ctx.opt.nl_problem, x, velocity, 1e-6, TOL, "shape-transient-smooth", i, SEED);
+	}
+}
+
+TEST_CASE("shape-transient-esp", EXPENSIVE_TEST_LABEL)
+{
+	TestContext ctx{"shape-transient-friction-opt.json"};
+
+	// Because varforms are shared, tailor JSON args.
+	for (auto &varform : ctx.opt.varforms)
+	{
+		varform->get_args()["contact"]["use_esp_formulation"] = true;
+		varform->get_args()["contact"]["friction_coefficient"] = 0;
+		varform->get_args()["solver"]["contact"]["barrier_stiffness"] = 1e4;
+	}
+
+	Eigen::MatrixXd V;
+	ctx.opt.varforms[0]->get_vertices(V);
+	Eigen::VectorXd x = utils::flatten(V);
+
+	constexpr uint64_t SEED = BASE_SEED + 33;
+	constexpr int REPEAT = 3;
+	constexpr double TOL = 5e-6;
+	std::mt19937_64 rng(SEED);
+	for (int i = 0; i < REPEAT; ++i)
+	{
+		Eigen::MatrixXd velocity = uniform_random_matrix(ctx.opt.ndof, 1, rng, 0.0, 1.0);
+		verify_adjoint(*ctx.opt.nl_problem, x, velocity, 1e-6, TOL, "shape-transient-esp", i, SEED);
 	}
 }
 
