@@ -315,6 +315,19 @@ namespace polyfem
 			args["space"]["advanced"]["bc_method"] = "lsq";
 		}
 
+		// With ESP, the gradient norm can plateau near convergence while the
+		// energy still decreases, so a gradient-only line search rejects every
+		// step. Accept energy decreases there unless the input says otherwise.
+		if (contact_enabled(args) && args["contact"]["use_esp_formulation"].get<bool>())
+		{
+			for (const std::string solver : {"/solver/nonlinear", "/solver/augmented_lagrangian/nonlinear"})
+			{
+				const json::json_pointer p(solver + "/line_search/accept_energy_decrease_in_grad_mode");
+				if (!args_in.contains(p))
+					args[p] = true;
+			}
+		}
+
 		const std::string configured_output_dir = args["output"]["directory"].get<std::string>();
 		const std::string output_dir = configured_output_dir.empty()
 										   ? std::string()

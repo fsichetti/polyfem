@@ -1203,7 +1203,8 @@
     {
         "pointer": "/contact/use_esp_formulation",
         "default": false,
-        "type": "bool"
+        "type": "bool",
+        "doc": "Use the Extremum Sum Potential (ESP) contact formulation. Unless set explicitly, this also turns on /solver/nonlinear/line_search/accept_energy_decrease_in_grad_mode (and its /solver/augmented_lagrangian/nonlinear copy)."
     },
     {
         "pointer": "/contact/use_adaptive_dhat",
