@@ -502,6 +502,13 @@ namespace polyfem::solver
 				}
 				else if (use_esp_formulation)
 				{
+					// ESP's friction weights do not represent transferred
+					// quadrature, so local transfer is frictionless only.
+					if (friction_coefficient != 0 && esp_params.value("local_transfer", true))
+					{
+						logger().info("ESP local_transfer supports frictionless contact only; turning it off.");
+						esp_params["local_transfer"] = false;
+					}
 					contact_form = std::make_shared<ESPContactForm>(
 						collision_mesh, dhat, avg_mass, esp_params, skip_obstacles, barrier_from_string(barrier), use_adaptive_dhat, use_adaptive_barrier_stiffness, is_time_dependent,
 						enable_shape_derivatives, broad_phase, ccd_tolerance * units.characteristic_length(), ccd_max_iterations, dhat_epsilon_scale);

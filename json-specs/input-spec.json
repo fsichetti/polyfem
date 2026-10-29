@@ -1158,7 +1158,19 @@
             "dbar_factor",
             "quadrature_order",
             "area_weights",
-            "normalize_weights"
+            "normalize_weights",
+            "lattice_spacing",
+            "max_lattice_subdivisions",
+            "legacy_element_weights",
+            "local_transfer",
+            "ee_mollifier",
+            "ee_mollifier_eps",
+            "ee_mollifier_width",
+            "ee_mollifier_length",
+            "ee_mollifier_power",
+            "ee_weight",
+            "ee_area_scaling",
+            "ee_area_ref"
         ]
     },
     {
@@ -1169,10 +1181,18 @@
     },
     {
         "pointer": "/contact/esp_params/quadrature_order",
+        "type": "string",
+        "default": "auto",
+        "options": [
+            "auto"
+        ],
+        "doc": "Face quadrature of ESP (3D): \"auto\" chooses a composite vertex (lattice) rule per face from its rest area, see lattice_spacing. In 2D, \"auto\" is Gauss-Lobatto order 1."
+    },
+    {
+        "pointer": "/contact/esp_params/quadrature_order",
         "type": "int",
-        "default": 1,
-        "min": 0,
-        "doc": "Quadrature order for high-order contact."
+        "min": 1,
+        "doc": "Face quadrature of ESP (3D): the order-n triangle rule with corner points (1 is the vertex rule). In 2D, the Gauss-Lobatto edge quadrature order."
     },
     {
         "pointer": "/contact/esp_params/area_weights",
@@ -1185,6 +1205,94 @@
         "default": true,
         "type": "bool",
         "doc": "Normalize quadrature weights in high-order contact potential."
+    },
+    {
+        "pointer": "/contact/esp_params/lattice_spacing",
+        "type": "float",
+        "default": 1.0,
+        "min": 0,
+        "doc": "With quadrature_order \"auto\" (3D): target spacing of the lattice rule points, as a multiple of dhat."
+    },
+    {
+        "pointer": "/contact/esp_params/max_lattice_subdivisions",
+        "type": "int",
+        "default": 16,
+        "min": 1,
+        "doc": "With quadrature_order \"auto\" (3D): cap on the lattice subdivisions m per face (a face uses at most (m+1)(m+2)/2 points)."
+    },
+    {
+        "pointer": "/contact/esp_params/legacy_element_weights",
+        "type": "bool",
+        "default": false,
+        "doc": "With area_weights (3D): weigh faces by area / 9 and edges in no face by length / 4, as earlier versions did. On a face-only mesh this equals dividing the barrier stiffness by 9."
+    },
+    {
+        "pointer": "/contact/esp_params/local_transfer",
+        "type": "bool",
+        "default": true,
+        "doc": "3D: give edge-edge samples weight taken locally from their edges' endpoint samples instead of renormalizing the whole element. Applies only with normalize_weights and without friction; otherwise it is turned off (with an info message)."
+    },
+    {
+        "pointer": "/contact/esp_params/ee_mollifier",
+        "type": "string",
+        "default": "smoothstep_rel",
+        "options": [
+            "smoothstep_rel",
+            "smoothstep",
+            "smoothstep_sqrt",
+            "gcp",
+            "gcp_fixed",
+            "gcp_sqrt"
+        ],
+        "doc": "Shape of the 3D edge-edge mollifier, which fades an edge-edge sample in as its closest points move off the edge endpoints. smoothstep_rel: C2 smoothstep over a width relative to the gap, w^2 = ee_mollifier_eps d^2. smoothstep: over the fixed width ee_mollifier_width. smoothstep_sqrt: over w^2 = 0.01 d ee_mollifier_length. gcp: the original GCP mollifier; gcp_fixed and gcp_sqrt: its shape with the widths of smoothstep and smoothstep_sqrt."
+    },
+    {
+        "pointer": "/contact/esp_params/ee_mollifier_eps",
+        "type": "float",
+        "default": 1.0,
+        "min": 0,
+        "doc": "ee_mollifier smoothstep_rel: squared width over squared gap. 1 fades edge-edge samples in over the gap d, the widest width that leaves no hole near the endpoints."
+    },
+    {
+        "pointer": "/contact/esp_params/ee_mollifier_width",
+        "type": "float",
+        "default": 0.00015,
+        "min": 0,
+        "doc": "ee_mollifier smoothstep and gcp_fixed: fixed width, in distance units."
+    },
+    {
+        "pointer": "/contact/esp_params/ee_mollifier_length",
+        "type": "float",
+        "default": 0.0015,
+        "min": 0,
+        "doc": "ee_mollifier smoothstep_sqrt and gcp_sqrt: length scale, in distance units."
+    },
+    {
+        "pointer": "/contact/esp_params/ee_mollifier_power",
+        "type": "int",
+        "default": 0,
+        "min": 0,
+        "doc": "Power of the edge-edge mollifier weight. 0 chooses it from the barrier: round(p) + 1 for an inverse power barrier of power p, otherwise 1."
+    },
+    {
+        "pointer": "/contact/esp_params/ee_weight",
+        "type": "float",
+        "default": 1.5,
+        "min": 0,
+        "doc": "Weight of an edge-edge sample relative to a vertex sample at zero gap, before the mollifier and ee_area_scaling."
+    },
+    {
+        "pointer": "/contact/esp_params/ee_area_scaling",
+        "type": "bool",
+        "default": true,
+        "doc": "3D: scale each element's edge-edge samples by (1 + (a / rho)^2)^(-1/2), with a the element's rest area (or rod length) and rho = r^2 (r on rods), so an edge-edge sample stands for about one r x r patch instead of a fixed share of its element. Keeps coarse elements from moving a large share of their energy onto edge-edge samples."
+    },
+    {
+        "pointer": "/contact/esp_params/ee_area_ref",
+        "type": "float",
+        "default": 0,
+        "min": 0,
+        "doc": "Reference length r of ee_area_scaling, in distance units; 0 uses dbar = dbar_factor * dhat."
     },
     {
         "pointer": "/contact/barrier",

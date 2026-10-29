@@ -6,7 +6,7 @@
         "barrier": "normalized_log",
         "esp_params": {
             "normalize_weights": false,
-            "quadrature_order": 0
+            "quadrature_order": 1
         }
     },
     "solver": {

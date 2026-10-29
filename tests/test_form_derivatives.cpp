@@ -314,14 +314,17 @@ TEST_CASE("ESP contact form derivatives", "[form][form_derivatives][contact_form
 	const ipc::BroadPhaseMethod broad_phase_method = ipc::BroadPhaseMethod::HASH_GRID;
 	const double ccd_tolerance = 1e-6;
 	const int ccd_max_iterations = static_cast<int>(1e6);
-	// Order 1 is vertex quadrature; a higher order exercises the fixed rule on
-	// the reference element, which is the part that differs from IPC.
-	const int quadrature_order = GENERATE(1, 5);
+	// "auto" is the per-face lattice rule (3D); order 1 is vertex
+	// quadrature; a higher order exercises the fixed rule on the reference
+	// element, which is the part that differs from IPC. Normalized weights
+	// also turn on local transfer (the default) in 3D.
+	const json quadrature_order = GENERATE(json("auto"), json(1), json(5));
 	const bool area_weights = GENERATE(true, false);
+	const bool normalize_weights = GENERATE(false, true);
 	const json esp_params = json::object(
 		{{"quadrature_order", quadrature_order},
 		 {"dbar_factor", 1.0},
-		 {"normalize_weights", false},
+		 {"normalize_weights", normalize_weights},
 		 {"area_weights", area_weights}});
 
 	ESPContactForm form(
@@ -332,6 +335,24 @@ TEST_CASE("ESP contact form derivatives", "[form][form_derivatives][contact_form
 	form.set_barrier_stiffness(barrier_stiffness);
 
 	test_form(form, *state_ptr);
+}
+
+TEST_CASE("ESP quadrature order validation", "[form][contact_form]")
+{
+	const auto state_ptr = get_state(3);
+	const json order = GENERATE(json(0), json(-1), json("vertex"));
+	const json esp_params = json::object(
+		{{"quadrature_order", order},
+		 {"dbar_factor", 1.0},
+		 {"normalize_weights", false},
+		 {"area_weights", true}});
+	CAPTURE(order.dump());
+	CHECK_THROWS(ESPContactForm(
+		state_ptr->collision_mesh, 1e-3, state_ptr->avg_mass, esp_params,
+		/*skip_obstacles=*/false, /*barrier=*/nullptr, /*use_adaptive_dhat=*/false,
+		/*use_adaptive_barrier_stiffness=*/false, /*is_time_dependent=*/false, false,
+		ipc::BroadPhaseMethod::HASH_GRID, 1e-6, static_cast<int>(1e6),
+		/*dhat_epsilon_scale=*/1e-7));
 }
 
 TEST_CASE("smooth contact form derivatives", "[form][form_derivatives][contact_form]")

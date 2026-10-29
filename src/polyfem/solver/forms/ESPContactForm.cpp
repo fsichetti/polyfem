@@ -66,19 +66,83 @@ namespace polyfem::solver
 		}
 	}
 
+	ipc::EEMollifierType ee_mollifier_type(const std::string &name)
+	{
+		if (name == "smoothstep_rel")
+			return ipc::EEMollifierType::SMOOTHSTEP_REL;
+		if (name == "smoothstep")
+			return ipc::EEMollifierType::SMOOTHSTEP;
+		if (name == "smoothstep_sqrt")
+			return ipc::EEMollifierType::SMOOTHSTEP_SQRT;
+		if (name == "gcp")
+			return ipc::EEMollifierType::GCP;
+		if (name == "gcp_fixed")
+			return ipc::EEMollifierType::GCP_FIXED;
+		if (name == "gcp_sqrt")
+			return ipc::EEMollifierType::GCP_SQRT;
+		log_and_throw_error("Unknown ESP edge-edge mollifier \"{}\".", name);
+	}
+
 	ipc::ESPParameters init_params(const double dhat, const json &esp_params, const bool skip_obstacles, std::shared_ptr<ipc::Barrier> barrier, const int dim)
 	{
-		const int quadrature_order = esp_params["quadrature_order"];
+		// quadrature_order is "auto" or an order >= 1.
+		const json order = esp_params.value("quadrature_order", json("auto"));
+		const bool auto_rule = order.is_string();
+		if (auto_rule && order.get<std::string>() != "auto")
+			log_and_throw_error("ESP quadrature_order must be \"auto\" or an integer >= 1, not \"{}\".", order.get<std::string>());
+		const int quadrature_order = auto_rule ? 0 : order.get<int>();
+		if (!auto_rule && quadrature_order < 1)
+			log_and_throw_error("ESP quadrature_order must be \"auto\" or an integer >= 1, not {}.", quadrature_order);
 		const double dbar_factor = esp_params["dbar_factor"];
 		const bool area_weights = esp_params["area_weights"];
 		const ipc::ESPParameters::IntegrationType itype = skip_obstacles ? ipc::ESPParameters::IntegrationType::NO_OBST : ipc::ESPParameters::IntegrationType::NORMAL;
-		ipc::ESPParameters params(dhat, dbar_factor, quadrature_order, area_weights, itype);
+		// In 2D the order is the Gauss-Lobatto edge order; "auto" means 1
+		// there. 3D does not use it.
+		const int edge_order = auto_rule ? 1 : quadrature_order;
+		ipc::ESPParameters params(dhat, dbar_factor, edge_order, area_weights, itype);
 		params.barrier = barrier ? barrier : (dim == 3 ? std::make_shared<ipc::InversePowerBarrier<>>(2.0) : std::make_shared<ipc::InversePowerBarrier<>>(1.0));
-		if (quadrature_order > 0)
+		if (!auto_rule)
 		{
 			params.set_quad_rule(build_quad_rule(quadrature_order));
 			verify_vertices_in_quad_rule(params.quad_rule());
 		}
+		else if (dim == 3)
+		{
+			// Per-face composite vertex (lattice) rules chosen from the rest
+			// face area, so the points are about lattice_spacing * dhat apart.
+			params.set_auto_lattice(
+				esp_params.value("lattice_spacing", 1.0) * dhat,
+				esp_params.value("max_lattice_subdivisions", 16));
+		}
+
+		// Read with the input spec's defaults, for callers that pass a
+		// partial object.
+		params.legacy_element_weights = esp_params.value("legacy_element_weights", false);
+		params.ee_mollifier.type = ee_mollifier_type(esp_params.value("ee_mollifier", "smoothstep_rel"));
+		params.ee_mollifier.rel_eps = esp_params.value("ee_mollifier_eps", 1.0);
+		params.ee_mollifier.width = esp_params.value("ee_mollifier_width", 150e-6);
+		params.ee_mollifier.length = esp_params.value("ee_mollifier_length", 1.5e-3);
+		params.ee_mollifier_power = esp_params.value("ee_mollifier_power", 0);
+		params.ee_weight = esp_params.value("ee_weight", 1.5);
+		params.ee_area_scaling = esp_params.value("ee_area_scaling", true);
+		params.ee_area_ref = esp_params.value("ee_area_ref", 0.0);
+
+		// Local transfer needs normalized weights and a face rule whose
+		// corners carry weight (they donate it); SolveData also turns it off
+		// with friction.
+		bool transfer = esp_params.value("local_transfer", true);
+		if (transfer && !esp_params.value("normalize_weights", true))
+		{
+			logger().info("ESP local_transfer needs normalize_weights; turning it off.");
+			transfer = false;
+		}
+		const auto &cw = params.corner_weights();
+		if (transfer && params.lattice_spacing() <= 0 && !(cw[0] > 0 && cw[1] > 0 && cw[2] > 0))
+		{
+			logger().info("ESP local_transfer needs a face rule with positive corner weights; turning it off.");
+			transfer = false;
+		}
+		params.local_quadrature_transfer = transfer;
 		return params;
 	}
 
