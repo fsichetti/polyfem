@@ -35,6 +35,12 @@ namespace polyfem::solver
 		/// @param x Current solution
 		void post_step(const polysolve::nonlinear::PostStepData &data) override;
 
+		/// @brief Initialize the collision set (and lagged weights) at x
+		void init(const Eigen::VectorXd &x) override;
+
+		/// @brief Update the collision set (and lagged weights) at the start of a time step
+		void update_quantities(const double t, const Eigen::VectorXd &x) override;
+
 		const ipc::ESPParameters &get_params() const { return params; }
 
 		const ipc::ESPCollisions &collision_set() const { return collision_set_; }
@@ -76,5 +82,17 @@ namespace polyfem::solver
 		ipc::ESPPotential barrier_potential_;
 
 		Eigen::MatrixXd cached_displaced_surface;
+
+		/// @brief When to refresh lagged normalization weights: never ("off"), at the start of each time step, or after each Newton iteration
+		enum class LaggedNormalization
+		{
+			OFF,
+			TIME_STEP,
+			NEWTON
+		};
+		LaggedNormalization lagged_normalization_ = LaggedNormalization::OFF;
+
+		/// @brief Hold the potential's per-element normalization at its value for the current collision set
+		void refresh_lagged_weights(const Eigen::MatrixXd &displaced_surface);
 	};
 } // namespace polyfem::solver

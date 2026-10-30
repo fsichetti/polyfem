@@ -130,6 +130,11 @@ namespace polyfem::solver
 		// Local transfer needs normalized weights and a face rule whose
 		// corners carry weight (they donate it).
 		bool transfer = esp_params.value("local_transfer", true);
+		if (transfer && esp_params.value("lagged_normalization", "off") != "off")
+		{
+			logger().info("ESP local_transfer is not supported with lagged_normalization; turning it off.");
+			transfer = false;
+		}
 		if (transfer && !esp_params.value("normalize_weights", true))
 		{
 			logger().info("ESP local_transfer needs normalize_weights; turning it off.");
@@ -163,6 +168,35 @@ namespace polyfem::solver
 	{
 		if (use_adaptive_dhat)
 			log_and_throw_error("Adaptive dhat is not implemented for ESPContactForm!");
+
+		const std::string lagged = esp_params.value("lagged_normalization", "off");
+		if (lagged == "time_step")
+			lagged_normalization_ = LaggedNormalization::TIME_STEP;
+		else if (lagged == "newton")
+			lagged_normalization_ = LaggedNormalization::NEWTON;
+		else if (lagged != "off")
+			log_and_throw_error("Unknown ESP lagged_normalization \"{}\".", lagged);
+	}
+
+	void ESPContactForm::refresh_lagged_weights(const Eigen::MatrixXd &displaced_surface)
+	{
+		if (lagged_normalization_ == LaggedNormalization::OFF)
+			return;
+		update_collision_set(displaced_surface);
+		barrier_potential_.set_lagged_weights(
+			barrier_potential_.element_near_weights(collision_set_, collision_mesh_, displaced_surface));
+	}
+
+	void ESPContactForm::init(const Eigen::VectorXd &x)
+	{
+		ContactForm::init(x);
+		refresh_lagged_weights(compute_displaced_surface(x));
+	}
+
+	void ESPContactForm::update_quantities(const double t, const Eigen::VectorXd &x)
+	{
+		ContactForm::update_quantities(t, x);
+		refresh_lagged_weights(compute_displaced_surface(x));
 	}
 
 	void ESPContactForm::update_barrier_stiffness(const Eigen::VectorXd &x, const Eigen::MatrixXd &grad_energy)
@@ -224,6 +258,9 @@ namespace polyfem::solver
 
 		// Always requires update_collision_set
 		update_collision_set(displaced_surface);
+
+		if (lagged_normalization_ == LaggedNormalization::NEWTON)
+			refresh_lagged_weights(displaced_surface);
 
 		const double curr_distance = collision_set_.compute_minimum_distance(collision_mesh_, displaced_surface);
 		if (!std::isinf(curr_distance))

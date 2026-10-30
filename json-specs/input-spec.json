@@ -1170,7 +1170,8 @@
             "ee_mollifier_power",
             "ee_weight",
             "ee_area_scaling",
-            "ee_area_ref"
+            "ee_area_ref",
+            "lagged_normalization"
         ]
     },
     {
@@ -1286,6 +1287,17 @@
         "type": "bool",
         "default": true,
         "doc": "3D: scale each element's edge-edge samples by (1 + (a / rho)^2)^(-1/2), with a the element's rest area (or rod length) and rho = r^2 (r on rods), so an edge-edge sample stands for about one r x r patch instead of a fixed share of its element. Keeps coarse elements from moving a large share of their energy onto edge-edge samples."
+    },
+    {
+        "pointer": "/contact/esp_params/lagged_normalization",
+        "type": "string",
+        "default": "off",
+        "options": [
+            "off",
+            "time_step",
+            "newton"
+        ],
+        "doc": "3D, normalized weights: hold each element's normalization (its sample weights' sum, including edge-edge mollifier weights) fixed, refreshed at the start of each time step or after each Newton iteration. Samples then enter with fixed coefficients, so each is evaluated once and its Hessian projected on its own stencil, which is much cheaper; the solve converges to a lagged equilibrium that omits the normalization's derivative. Turns off local_transfer."
     },
     {
         "pointer": "/contact/esp_params/ee_area_ref",
