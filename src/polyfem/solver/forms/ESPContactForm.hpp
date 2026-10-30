@@ -89,12 +89,11 @@ namespace polyfem::solver
 
 		Eigen::MatrixXd cached_displaced_surface;
 
-		/// @brief When to refresh lagged normalization weights: never ("off"), at the start of each time step, or after each Newton iteration
+		/// @brief When to refresh lagged normalization weights: never ("off") or at the start of each time step, so the energy is fixed within a time step
 		enum class LaggedNormalization
 		{
 			OFF,
-			TIME_STEP,
-			NEWTON
+			TIME_STEP
 		};
 		LaggedNormalization lagged_normalization_ = LaggedNormalization::OFF;
 

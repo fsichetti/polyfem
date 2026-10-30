@@ -1294,10 +1294,9 @@
         "default": "off",
         "options": [
             "off",
-            "time_step",
-            "newton"
+            "time_step"
         ],
-        "doc": "3D, normalized weights: hold each element's normalization (its sample weights' sum, including edge-edge mollifier weights) fixed, refreshed at the start of each time step or after each Newton iteration. Samples then enter with fixed coefficients, so each is evaluated once and its Hessian projected on its own stencil, which is much cheaper; the solve converges to a lagged equilibrium that omits the normalization's derivative. Turns off local_transfer."
+        "doc": "3D, normalized weights: hold each element's normalization (its sample weights' sum, including edge-edge mollifier weights) fixed during each time step, refreshed at its start, so the energy does not change between Newton iterations. Samples then enter with fixed coefficients, so each is evaluated once and its Hessian projected on its own stencil, which is much cheaper; the solve converges to a lagged equilibrium that omits the normalization's derivative. Turns off local_transfer."
     },
     {
         "pointer": "/contact/esp_params/ee_area_ref",

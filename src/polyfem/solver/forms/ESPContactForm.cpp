@@ -172,8 +172,6 @@ namespace polyfem::solver
 		const std::string lagged = esp_params.value("lagged_normalization", "off");
 		if (lagged == "time_step")
 			lagged_normalization_ = LaggedNormalization::TIME_STEP;
-		else if (lagged == "newton")
-			lagged_normalization_ = LaggedNormalization::NEWTON;
 		else if (lagged != "off")
 			log_and_throw_error("Unknown ESP lagged_normalization \"{}\".", lagged);
 	}
@@ -279,9 +277,6 @@ namespace polyfem::solver
 
 		// Always requires update_collision_set
 		update_collision_set(displaced_surface);
-
-		if (lagged_normalization_ == LaggedNormalization::NEWTON)
-			refresh_lagged_weights(displaced_surface);
 
 		const double curr_distance = collision_set_.compute_minimum_distance(collision_mesh_, displaced_surface);
 		if (!std::isinf(curr_distance))
