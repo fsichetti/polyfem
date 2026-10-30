@@ -41,6 +41,12 @@ namespace polyfem::solver
 		/// @brief Update the collision set (and lagged weights) at the start of a time step
 		void update_quantities(const double t, const Eigen::VectorXd &x) override;
 
+		/// @brief Build all-type candidates over the line search's motion, so collision sets at trial points skip the broad phase
+		void line_search_begin(const Eigen::VectorXd &x0, const Eigen::VectorXd &x1) override;
+
+		/// @brief Drop the line search's candidates
+		void line_search_end() override;
+
 		const ipc::ESPParameters &get_params() const { return params; }
 
 		const ipc::ESPCollisions &collision_set() const { return collision_set_; }
@@ -91,6 +97,9 @@ namespace polyfem::solver
 			NEWTON
 		};
 		LaggedNormalization lagged_normalization_ = LaggedNormalization::OFF;
+
+		/// @brief All-type candidates over the current line search's motion (with their adjacency sets), or empty
+		ipc::Candidates line_search_candidates_;
 
 		/// @brief Hold the potential's per-element normalization at its value for the current collision set
 		void refresh_lagged_weights(const Eigen::MatrixXd &displaced_surface);

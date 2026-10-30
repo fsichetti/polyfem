@@ -213,9 +213,30 @@ namespace polyfem::solver
 		if (cached_displaced_surface.size() == displaced_surface.size() && cached_displaced_surface == displaced_surface)
 			return;
 
-		collision_set_.build(
-			collision_mesh_, displaced_surface, params, broad_phase_.get());
+		// Within a line search, trial points lie on the segment the cached
+		// candidates were built over, so only the narrow phase is redone.
+		if (!line_search_candidates_.empty())
+			collision_set_.build(line_search_candidates_, collision_mesh_, displaced_surface, params);
+		else
+			collision_set_.build(
+				collision_mesh_, displaced_surface, params, broad_phase_.get());
 		cached_displaced_surface = displaced_surface;
+	}
+
+	void ESPContactForm::line_search_begin(const Eigen::VectorXd &x0, const Eigen::VectorXd &x1)
+	{
+		ContactForm::line_search_begin(x0, x1);
+		// Same inflation as ESPCollisions::build(mesh, vertices, ...).
+		line_search_candidates_.build(
+			collision_mesh_, compute_displaced_surface(x0), compute_displaced_surface(x1),
+			/*inflation_radius=*/params.dhat / 2, broad_phase_.get(), /*all_types=*/true);
+		line_search_candidates_.convert_candidates_to_sets();
+	}
+
+	void ESPContactForm::line_search_end()
+	{
+		ContactForm::line_search_end();
+		line_search_candidates_.clear();
 	}
 
 	double ESPContactForm::value_unweighted(const Eigen::VectorXd &x) const
