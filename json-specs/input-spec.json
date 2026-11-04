@@ -1230,7 +1230,7 @@
         "pointer": "/contact/esp_params/local_transfer",
         "type": "bool",
         "default": true,
-        "doc": "3D: give edge-edge samples weight taken locally from their edges' endpoint samples instead of renormalizing the whole element. Applies only with normalize_weights and without friction; otherwise it is turned off (with an info message)."
+        "doc": "3D: give edge-edge samples weight taken locally from their edges' endpoint samples instead of renormalizing the whole element. Applies only with normalize_weights; otherwise it is turned off (with an info message). Friction uses each sample's coefficient in the transferred energy."
     },
     {
         "pointer": "/contact/esp_params/ee_mollifier",

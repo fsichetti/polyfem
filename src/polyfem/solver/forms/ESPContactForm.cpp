@@ -128,8 +128,7 @@ namespace polyfem::solver
 		params.ee_area_ref = esp_params.value("ee_area_ref", 0.0);
 
 		// Local transfer needs normalized weights and a face rule whose
-		// corners carry weight (they donate it); SolveData also turns it off
-		// with friction.
+		// corners carry weight (they donate it).
 		bool transfer = esp_params.value("local_transfer", true);
 		if (transfer && !esp_params.value("normalize_weights", true))
 		{
