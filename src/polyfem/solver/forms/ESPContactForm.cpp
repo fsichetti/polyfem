@@ -130,11 +130,6 @@ namespace polyfem::solver
 		// Local transfer needs normalized weights and a face rule whose
 		// corners carry weight (they donate it).
 		bool transfer = esp_params.value("local_transfer", true);
-		if (transfer && esp_params.value("lagged_normalization", "off") != "off")
-		{
-			logger().info("ESP local_transfer is not supported with lagged_normalization; turning it off.");
-			transfer = false;
-		}
 		if (transfer && !esp_params.value("normalize_weights", true))
 		{
 			logger().info("ESP local_transfer needs normalize_weights; turning it off.");
