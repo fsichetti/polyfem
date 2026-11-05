@@ -1165,8 +1165,6 @@
             "local_transfer",
             "ee_mollifier",
             "ee_mollifier_eps",
-            "ee_mollifier_width",
-            "ee_mollifier_length",
             "ee_mollifier_power",
             "ee_weight",
             "ee_area_scaling",
@@ -1239,35 +1237,17 @@
         "default": "auto",
         "options": [
             "auto",
-            "smoothstep_rel",
             "smoothstep",
-            "smoothstep_sqrt",
-            "gcp",
-            "gcp_fixed",
-            "gcp_sqrt"
+            "gcp"
         ],
-        "doc": "Shape of the 3D edge-edge mollifier, which fades an edge-edge sample in as its closest points move off the edge endpoints. auto: smoothstep_rel, or gcp when ee_mollifier_power is given. smoothstep_rel: C2 smoothstep over a width relative to the gap, w^2 = ee_mollifier_eps d^2. smoothstep: over the fixed width ee_mollifier_width. smoothstep_sqrt: over w^2 = 0.01 d ee_mollifier_length. gcp: the original GCP mollifier; gcp_fixed and gcp_sqrt: its shape with the widths of smoothstep and smoothstep_sqrt."
+        "doc": "Shape of the 3D edge-edge mollifier, which fades an edge-edge sample in as its closest points move off the edge endpoints. auto: smoothstep, or gcp when ee_mollifier_power is given. smoothstep: C2 smoothstep over a width relative to the gap, w^2 = ee_mollifier_eps d^2 (w = d by default). gcp: the original GCP mollifier."
     },
     {
         "pointer": "/contact/esp_params/ee_mollifier_eps",
         "type": "float",
         "default": 1.0,
         "min": 0,
-        "doc": "ee_mollifier smoothstep_rel: squared width over squared gap. 1 fades edge-edge samples in over the gap d, the widest width that leaves no hole near the endpoints."
-    },
-    {
-        "pointer": "/contact/esp_params/ee_mollifier_width",
-        "type": "float",
-        "default": 0.00015,
-        "min": 0,
-        "doc": "ee_mollifier smoothstep and gcp_fixed: fixed width, in distance units."
-    },
-    {
-        "pointer": "/contact/esp_params/ee_mollifier_length",
-        "type": "float",
-        "default": 0.0015,
-        "min": 0,
-        "doc": "ee_mollifier smoothstep_sqrt and gcp_sqrt: length scale, in distance units."
+        "doc": "smoothstep mollifier: squared width over squared gap, w^2 = ee_mollifier_eps d^2."
     },
     {
         "pointer": "/contact/esp_params/ee_mollifier_power",

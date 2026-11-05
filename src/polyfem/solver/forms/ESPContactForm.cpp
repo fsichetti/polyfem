@@ -68,18 +68,10 @@ namespace polyfem::solver
 
 	ipc::EEMollifierType ee_mollifier_type(const std::string &name)
 	{
-		if (name == "smoothstep_rel")
-			return ipc::EEMollifierType::SMOOTHSTEP_REL;
 		if (name == "smoothstep")
 			return ipc::EEMollifierType::SMOOTHSTEP;
-		if (name == "smoothstep_sqrt")
-			return ipc::EEMollifierType::SMOOTHSTEP_SQRT;
 		if (name == "gcp")
 			return ipc::EEMollifierType::GCP;
-		if (name == "gcp_fixed")
-			return ipc::EEMollifierType::GCP_FIXED;
-		if (name == "gcp_sqrt")
-			return ipc::EEMollifierType::GCP_SQRT;
 		log_and_throw_error("Unknown ESP edge-edge mollifier \"{}\".", name);
 	}
 
@@ -123,11 +115,9 @@ namespace polyfem::solver
 		const int ee_power = esp_params.value("ee_mollifier_power", 0);
 		std::string mollifier = esp_params.value("ee_mollifier", "auto");
 		if (mollifier == "auto")
-			mollifier = ee_power > 0 ? "gcp" : "smoothstep_rel";
+			mollifier = ee_power > 0 ? "gcp" : "smoothstep";
 		params.ee_mollifier.type = ee_mollifier_type(mollifier);
 		params.ee_mollifier.rel_eps = esp_params.value("ee_mollifier_eps", 1.0);
-		params.ee_mollifier.width = esp_params.value("ee_mollifier_width", 150e-6);
-		params.ee_mollifier.length = esp_params.value("ee_mollifier_length", 1.5e-3);
 		params.ee_mollifier_power = ee_power;
 		params.ee_weight = esp_params.value("ee_weight", 1.5);
 		params.ee_area_scaling = esp_params.value("ee_area_scaling", true);
