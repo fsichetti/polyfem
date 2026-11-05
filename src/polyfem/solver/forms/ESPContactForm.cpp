@@ -118,11 +118,17 @@ namespace polyfem::solver
 		// Read with the input spec's defaults, for callers that pass a
 		// partial object.
 		params.legacy_element_weights = esp_params.value("legacy_element_weights", false);
-		params.ee_mollifier.type = ee_mollifier_type(esp_params.value("ee_mollifier", "smoothstep_rel"));
+		// "auto": the smoothstep mollifier over the gap with no power; giving
+		// ee_mollifier_power selects GCP's mollifier with that power instead.
+		const int ee_power = esp_params.value("ee_mollifier_power", 0);
+		std::string mollifier = esp_params.value("ee_mollifier", "auto");
+		if (mollifier == "auto")
+			mollifier = ee_power > 0 ? "gcp" : "smoothstep_rel";
+		params.ee_mollifier.type = ee_mollifier_type(mollifier);
 		params.ee_mollifier.rel_eps = esp_params.value("ee_mollifier_eps", 1.0);
 		params.ee_mollifier.width = esp_params.value("ee_mollifier_width", 150e-6);
 		params.ee_mollifier.length = esp_params.value("ee_mollifier_length", 1.5e-3);
-		params.ee_mollifier_power = esp_params.value("ee_mollifier_power", 0);
+		params.ee_mollifier_power = ee_power;
 		params.ee_weight = esp_params.value("ee_weight", 1.5);
 		params.ee_area_scaling = esp_params.value("ee_area_scaling", true);
 		params.ee_area_ref = esp_params.value("ee_area_ref", 0.0);

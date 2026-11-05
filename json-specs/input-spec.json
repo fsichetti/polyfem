@@ -1236,8 +1236,9 @@
     {
         "pointer": "/contact/esp_params/ee_mollifier",
         "type": "string",
-        "default": "smoothstep_rel",
+        "default": "auto",
         "options": [
+            "auto",
             "smoothstep_rel",
             "smoothstep",
             "smoothstep_sqrt",
@@ -1245,7 +1246,7 @@
             "gcp_fixed",
             "gcp_sqrt"
         ],
-        "doc": "Shape of the 3D edge-edge mollifier, which fades an edge-edge sample in as its closest points move off the edge endpoints. smoothstep_rel: C2 smoothstep over a width relative to the gap, w^2 = ee_mollifier_eps d^2. smoothstep: over the fixed width ee_mollifier_width. smoothstep_sqrt: over w^2 = 0.01 d ee_mollifier_length. gcp: the original GCP mollifier; gcp_fixed and gcp_sqrt: its shape with the widths of smoothstep and smoothstep_sqrt."
+        "doc": "Shape of the 3D edge-edge mollifier, which fades an edge-edge sample in as its closest points move off the edge endpoints. auto: smoothstep_rel, or gcp when ee_mollifier_power is given. smoothstep_rel: C2 smoothstep over a width relative to the gap, w^2 = ee_mollifier_eps d^2. smoothstep: over the fixed width ee_mollifier_width. smoothstep_sqrt: over w^2 = 0.01 d ee_mollifier_length. gcp: the original GCP mollifier; gcp_fixed and gcp_sqrt: its shape with the widths of smoothstep and smoothstep_sqrt."
     },
     {
         "pointer": "/contact/esp_params/ee_mollifier_eps",
@@ -1273,7 +1274,7 @@
         "type": "int",
         "default": 0,
         "min": 0,
-        "doc": "Power of the edge-edge mollifier weight. 0 chooses it from the barrier: round(p) + 1 for an inverse power barrier of power p, otherwise 1."
+        "doc": "Power of the edge-edge sample weight. Giving it (> 0) selects GCP's mollifier when ee_mollifier is auto. 0 chooses it from the mollifier: 1 for the smoothstep mollifiers; for the gcp ones, round(p) + 1 under an inverse power barrier of power p (which keeps their gradient bounded near edge endpoints), otherwise 1."
     },
     {
         "pointer": "/contact/esp_params/ee_weight",
