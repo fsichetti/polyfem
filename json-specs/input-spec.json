@@ -1161,7 +1161,6 @@
             "normalize_weights",
             "lattice_spacing",
             "max_lattice_subdivisions",
-            "legacy_element_weights",
             "local_transfer",
             "ee_mollifier",
             "ee_mollifier_eps",
@@ -1217,12 +1216,6 @@
         "default": 16,
         "min": 1,
         "doc": "With quadrature_order \"auto\" (3D): cap on the lattice subdivisions m per face (a face uses at most (m+1)(m+2)/2 points)."
-    },
-    {
-        "pointer": "/contact/esp_params/legacy_element_weights",
-        "type": "bool",
-        "default": false,
-        "doc": "With area_weights (3D): weigh faces by area / 9 and edges in no face by length / 4, as earlier versions did. On a face-only mesh this equals dividing the barrier stiffness by 9."
     },
     {
         "pointer": "/contact/esp_params/local_transfer",

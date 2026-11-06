@@ -107,9 +107,6 @@ namespace polyfem::solver
 				esp_params.value("max_lattice_subdivisions", 16));
 		}
 
-		// Read with the input spec's defaults, for callers that pass a
-		// partial object.
-		params.legacy_element_weights = esp_params.value("legacy_element_weights", false);
 		// "auto": the smoothstep mollifier over the gap with no power; giving
 		// ee_mollifier_power selects GCP's mollifier with that power instead.
 		const int ee_power = esp_params.value("ee_mollifier_power", 0);
