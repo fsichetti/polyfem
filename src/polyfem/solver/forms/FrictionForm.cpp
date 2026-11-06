@@ -137,7 +137,9 @@ namespace polyfem::solver
 				collision_mesh_, displaced_surface, collision_set,
 				esp_contact->get_params(), contact_form_.barrier_stiffness(),
 				Eigen::VectorXd::Ones(collision_mesh_.num_vertices()) * mu_,
-				Eigen::VectorXd::Ones(collision_mesh_.num_vertices()) * mu_);
+				Eigen::VectorXd::Ones(collision_mesh_.num_vertices()) * mu_,
+				ipc::TangentialCollisions::default_blend_mu,
+				esp_contact->barrier_potential().use_near_far());
 		}
 		else
 		{

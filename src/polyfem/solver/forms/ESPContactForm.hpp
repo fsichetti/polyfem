@@ -35,12 +35,6 @@ namespace polyfem::solver
 		/// @param x Current solution
 		void post_step(const polysolve::nonlinear::PostStepData &data) override;
 
-		/// @brief Initialize the collision set (and lagged weights) at x
-		void init(const Eigen::VectorXd &x) override;
-
-		/// @brief Update the collision set (and lagged weights) at the start of a time step
-		void update_quantities(const double t, const Eigen::VectorXd &x) override;
-
 		/// @brief Build all-type candidates over the line search's motion, so collision sets at trial points skip the broad phase
 		void line_search_begin(const Eigen::VectorXd &x0, const Eigen::VectorXd &x1) override;
 
@@ -89,18 +83,7 @@ namespace polyfem::solver
 
 		Eigen::MatrixXd cached_displaced_surface;
 
-		/// @brief When to refresh lagged normalization weights: never ("off") or at the start of each time step, so the energy is fixed within a time step
-		enum class LaggedNormalization
-		{
-			OFF,
-			TIME_STEP
-		};
-		LaggedNormalization lagged_normalization_ = LaggedNormalization::OFF;
-
 		/// @brief All-type candidates over the current line search's motion (with their adjacency sets), or empty
 		ipc::Candidates line_search_candidates_;
-
-		/// @brief Hold the potential's per-element normalization at its value for the current collision set
-		void refresh_lagged_weights(const Eigen::MatrixXd &displaced_surface);
 	};
 } // namespace polyfem::solver

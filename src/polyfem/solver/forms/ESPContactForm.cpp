@@ -85,8 +85,8 @@ namespace polyfem::solver
 		const int quadrature_order = auto_rule ? 0 : order.get<int>();
 		if (!auto_rule && quadrature_order < 1)
 			log_and_throw_error("ESP quadrature_order must be \"auto\" or an integer >= 1, not {}.", quadrature_order);
-		const double dbar_factor = esp_params["dbar_factor"];
-		const bool area_weights = esp_params["area_weights"];
+		const double dbar_factor = esp_params.value("dbar_factor", 1.0);
+		const bool area_weights = esp_params.value("area_weights", true);
 		const ipc::ESPParameters::IntegrationType itype = skip_obstacles ? ipc::ESPParameters::IntegrationType::NO_OBST : ipc::ESPParameters::IntegrationType::NORMAL;
 		// In 2D the order is the Gauss-Lobatto edge order; "auto" means 1
 		// there. 3D does not use it.
@@ -155,37 +155,10 @@ namespace polyfem::solver
 								   const double ccd_tolerance,
 								   const int ccd_max_iterations,
 								   const double dhat_epsilon_scale) : ContactForm(collision_mesh, dhat, avg_mass, use_adaptive_barrier_stiffness, is_time_dependent, enable_shape_derivatives, broad_phase_method, ccd_tolerance, ccd_max_iterations, dhat_epsilon_scale), params(init_params(dhat, esp_params, skip_obstacles, barrier, static_cast<int>(collision_mesh.dim()))),
-																	  barrier_potential_(params, esp_params["normalize_weights"])
+																	  barrier_potential_(params, esp_params.value("normalize_weights", true))
 	{
 		if (use_adaptive_dhat)
 			log_and_throw_error("Adaptive dhat is not implemented for ESPContactForm!");
-
-		const std::string lagged = esp_params.value("lagged_normalization", "off");
-		if (lagged == "time_step")
-			lagged_normalization_ = LaggedNormalization::TIME_STEP;
-		else if (lagged != "off")
-			log_and_throw_error("Unknown ESP lagged_normalization \"{}\".", lagged);
-	}
-
-	void ESPContactForm::refresh_lagged_weights(const Eigen::MatrixXd &displaced_surface)
-	{
-		if (lagged_normalization_ == LaggedNormalization::OFF)
-			return;
-		update_collision_set(displaced_surface);
-		barrier_potential_.set_lagged_weights(
-			barrier_potential_.element_near_weights(collision_set_, collision_mesh_, displaced_surface));
-	}
-
-	void ESPContactForm::init(const Eigen::VectorXd &x)
-	{
-		ContactForm::init(x);
-		refresh_lagged_weights(compute_displaced_surface(x));
-	}
-
-	void ESPContactForm::update_quantities(const double t, const Eigen::VectorXd &x)
-	{
-		ContactForm::update_quantities(t, x);
-		refresh_lagged_weights(compute_displaced_surface(x));
 	}
 
 	void ESPContactForm::update_barrier_stiffness(const Eigen::VectorXd &x, const Eigen::MatrixXd &grad_energy)

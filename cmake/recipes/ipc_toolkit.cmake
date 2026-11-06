@@ -11,6 +11,6 @@ include(CPM)
 CPMAddPackage(
 	NAME "ipc-toolkit"
 	GIT_REPOSITORY https://github.com/fsichetti/ipc-toolkit.git
-	GIT_TAG "af46b2ceeb5b4d0b73f370ca3ee831c3ce9fb8a7"
+	GIT_TAG "b7094f5c3b5451261e75217b7db11e7175b9f752"
 	OPTIONS "IPC_TOOLKIT_WITH_CUDA OFF"
 )
